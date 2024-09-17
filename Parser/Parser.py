@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict
 from excel_saver import save_orders_to_excel
 
-HC_URL = 'https://freelance.habr.com/tasks?q=django&categories=development_backend'
+HC_URL = 'https://freelance.habr.com/tasks?q=bot&categories=development_bots'
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
 }
@@ -97,9 +97,31 @@ class HabrPage(Page):
     card_class = HabrJobCard
 
 
+def filter_orders_by_keywords(orders: List[Dict[str, str]], keywords: List[str]) -> List[Dict[str, str]]:
+    """Фильтрация заказов по ключевым словам."""
+    filtered_orders = []
+    for order in orders:
+        title = order['Title'].lower()  # Заголовок заказа
+        if any(keyword.lower() in title for keyword in keywords):
+            filtered_orders.append(order)
+    return filtered_orders
+
+
 if __name__ == '__main__':
-    habr_page = HabrPage(HC_URL)
-    orders = habr_page.get_orders()
-    save_orders_to_excel(orders, 'orders.xlsx')
+    keywords = ['telegram', 'bot', 'бот', 'python']
+
+    page = HabrPage(HC_URL)
+    page.fetch()
+    orders = page.get_orders()
+
+    filtered_orders = filter_orders_by_keywords(orders, keywords)
+    if filtered_orders:
+        new_orders = save_orders_to_excel(filtered_orders, 'orders.xlsx')
+    else:
+        print('Новых заказов пока нет.')
+
+
+
+
 
 
